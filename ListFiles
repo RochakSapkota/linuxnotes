@@ -1,0 +1,250 @@
+# List files
+
+## ls
+
+```bash
+ls
+```
+Lists the contents of the current directory.
+
+```bash
+ls /etc
+```
+Lists another directory. `/etc` is the **argument** (what to act on).
+
+```bash
+ls --color=off
+ls --color=on
+ls --color=auto
+```
+Turns colors off / on / on only in a terminal (default).
+
+**Option vs argument**
+```bash
+ls -l /etc
+   |   |
+   |   +-- argument: what to act on
+   +------ option: how to act
+```
+- `-l` short option (one letter, can combine: `-la`)
+- `--color` long option (a word)
+
+---
+
+## ls -l
+
+```bash
+ls -l
+```
+Long format. Example line:
+
+```
+-rw-r--r-- 1 rochak rochak 399 Oct 30 13:58 id_ed25519.pub
+```
+
+| # | Column | Meaning |
+|---|--------|---------|
+| 1 | `-rw-r--r--` | type + permissions |
+| 2 | `1` | hard links (files: 1, directories: at least 2) |
+| 3 | `rochak` | owner (who owns it now, not who created it) |
+| 4 | `rochak` | group (users who share access) |
+| 5 | `399` | size in bytes |
+| 6 | `Oct 30 13:58` | last modified |
+| 7 | `id_ed25519.pub` | name |
+
+```bash
+ls -n
+```
+Same as `-l` but shows UID / GID numbers instead of names.
+
+```bash
+groups
+id
+```
+Shows my groups / my UID, GID and groups.
+
+---
+
+## Permissions
+
+```
+d rwx r-x r-x
+| |   |   |
+| |   |   +-- others
+| |   +------ group
+| +---------- owner
++------------ type (d = directory, - = file, l = symlink)
+```
+Always 10 characters. `r` read, `w` write, `x` execute, `-` none. On a directory, `x` means can enter it with `cd`.
+
+**Number mode:** r = 4, w = 2, x = 1, added per group.
+
+| Digit | Permission |
+|-------|-----------|
+| 7 | rwx |
+| 6 | rw- |
+| 5 | r-x |
+| 4 | r-- |
+| 0 | --- |
+
+`rwxr-xr-x` = 7 5 5 = `755`
+
+```bash
+ls -ld folder
+```
+Permissions of the folder itself, not its contents.
+
+```bash
+chmod 755 folder
+```
+Sets permissions using numbers.
+
+Common modes: `755` folders/scripts, `644` normal files, `700` private folder (`~/.ssh`), `600` private file (SSH key).
+
+---
+
+## ls -a
+
+```bash
+ls -a
+```
+Shows hidden files too. Hidden = name starts with `.` (**dotfiles**).
+
+```bash
+ls -A
+```
+Almost all: hidden files but without `.` and `..`.
+
+```bash
+ls -al
+```
+Options combined: all files + long format.
+
+```bash
+ls .
+```
+`.` = current directory. Same output as plain `ls`.
+
+```bash
+ls ..
+```
+`..` = parent directory. Lists the folder above.
+
+---
+
+## ls -t (sort by time)
+
+Default sort is alphabetical.
+
+**Three timestamps**
+
+| Name | Updated when |
+|------|--------------|
+| `atime` | file is accessed (read) |
+| `mtime` | file **content** changes |
+| `ctime` | **metadata** changes (permissions, owner, location) |
+
+Timestamp = seconds since the **Unix epoch** (midnight, 1 Jan 1970).
+
+```bash
+date
+date +%s
+```
+Current date and time / the same as a timestamp.
+
+```bash
+ls -lt
+```
+Sort by mtime, newest first.
+
+```bash
+ls -ltu
+```
+Sort by and show atime.
+
+```bash
+ls -ltc
+```
+Sort by and show ctime.
+
+**Experiment** (in a scratch folder, not the notes repo)
+```bash
+mkdir ~/scratch && cd ~/scratch
+touch file-01 file-02
+touch theNewestFile              # create a file
+echo "hello world!" > file-02    # change content
+chmod 444 file-01                # change permissions
+```
+Run `ls -ltu` and `ls -ltc` after each step.
+
+| Action | mtime | ctime |
+|--------|-------|-------|
+| change content | yes | yes |
+| change permissions | no | yes |
+
+---
+
+## ls -S (sort by size)
+
+```bash
+ls -s
+```
+Shows allocated space (blocks) at the start of each line.
+
+```bash
+ls -ls
+```
+Long format + allocated space.
+
+```bash
+ls -lS
+```
+Sort by size, largest first.
+
+```bash
+ls -lh
+```
+Human-readable sizes: `4.0K`, `1.2M`, `3.4G`. 1K = 1024 bytes.
+
+```bash
+ls -l --si
+```
+Same but 1K = 1000 bytes. Rarely used.
+
+```bash
+ls -lhS
+```
+Everyday form: biggest first, readable sizes.
+
+---
+
+## Other commands met
+
+```bash
+clear                  # clear the screen
+touch file             # create an empty file
+echo "text" > file     # write text into a file (lesson 5 / 15)
+du -sh folder          # real size of a folder
+```
+
+---
+
+## Notes and Gotchas
+
+**Most useful for revision**
+- Options are case-sensitive: `-a` vs `-A`, `-s` vs `-S`
+- `-s` shows allocated space, `-S` **sorts** by size
+- `-h` only changes how sizes look, it doesn't sort
+- `-u` and `-c` need `-t` (to sort) and `-l` (to see the time)
+- `ls -l` shows mtime by default
+- Content change updates mtime and ctime; permission change updates only ctime
+- Directories always show size `4096`, not their contents. Use `du -sh`
+- In number permissions "none" is `0`, never a dash (`700`, not `7--`)
+- `drwx` is only the first 4 of 10 characters
+- SSH refuses keys if `~/.ssh` or the private key is too open
+- Hidden does not mean secret
+
+**Terms**
+- "Arguments" in the course = **options** in standard naming. Argument = the file or folder.
+- Option with `-` = short, `--` = long
+
