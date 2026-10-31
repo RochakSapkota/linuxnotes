@@ -1,4 +1,4 @@
-# List files
+# Lesson 1: List files
 
 ## ls
 
@@ -13,18 +13,18 @@ ls /etc
 Lists another directory. `/etc` is the **argument** (what to act on).
 
 ```bash
-ls --color=off
-ls --color=on
+ls --color=never
+ls --color=always
 ls --color=auto
 ```
-Turns colors off / on / on only in a terminal (default).
+Colors off / on / on only in a terminal (default). Valid words: `always` `yes` `force`, `never` `no` `none`, `auto` `tty` `if-tty`. Anything else (like `red`) gives an error that lists the valid ones.
 
 **Option vs argument**
 ```bash
 ls -l /etc
-   |   |
-   |   +-- argument: what to act on
-   +------ option: how to act
+#  |   |
+#  |   +-- argument: what to act on
+#  +------ option: how to act
 ```
 - `-l` short option (one letter, can combine: `-la`)
 - `--color` long option (a word)
@@ -45,7 +45,7 @@ Long format. Example line:
 | # | Column | Meaning |
 |---|--------|---------|
 | 1 | `-rw-r--r--` | type + permissions |
-| 2 | `1` | hard links (files: 1, directories: at least 2) |
+| 2 | `1` | hard links (files: 1, directories: 2 + number of subdirectories) |
 | 3 | `rochak` | owner (who owns it now, not who created it) |
 | 4 | `rochak` | group (users who share access) |
 | 5 | `399` | size in bytes |
@@ -55,13 +55,13 @@ Long format. Example line:
 ```bash
 ls -n
 ```
-Same as `-l` but shows UID / GID numbers instead of names.
+Same as `-l` but UID / GID numbers instead of names. UID = user identifier, GID = group identifier.
 
 ```bash
 groups
 id
 ```
-Shows my groups / my UID, GID and groups.
+My groups / my UID, GID and groups.
 
 ---
 
@@ -88,11 +88,6 @@ Always 10 characters. `r` read, `w` write, `x` execute, `-` none. On a directory
 | 0 | --- |
 
 `rwxr-xr-x` = 7 5 5 = `755`
-
-```bash
-ls -ld folder
-```
-Permissions of the folder itself, not its contents.
 
 ```bash
 chmod 755 folder
@@ -134,7 +129,7 @@ ls ..
 
 ## ls -t (sort by time)
 
-Default sort is alphabetical.
+Default sort is alphabetical (on this machine: digits, then capitals, then lowercase, so `File-01` comes before `file-01`).
 
 **Three timestamps**
 
@@ -142,7 +137,7 @@ Default sort is alphabetical.
 |------|--------------|
 | `atime` | file is accessed (read) |
 | `mtime` | file **content** changes |
-| `ctime` | **metadata** changes (permissions, owner, location) |
+| `ctime` | **metadata** changes (permissions, owner, rename/move, link count) |
 
 Timestamp = seconds since the **Unix epoch** (midnight, 1 Jan 1970).
 
@@ -155,17 +150,17 @@ Current date and time / the same as a timestamp.
 ```bash
 ls -lt
 ```
-Sort by mtime, newest first.
+Sort by **modification time** (mtime), newest first.
 
 ```bash
 ls -ltu
 ```
-Sort by and show atime.
+Sort by and show **last access time** (atime).
 
 ```bash
 ls -ltc
 ```
-Sort by and show ctime.
+Sort by and show **ctime** (last metadata change, e.g. permissions).
 
 **Experiment** (in a scratch folder, not the notes repo)
 ```bash
@@ -189,22 +184,20 @@ Run `ls -ltu` and `ls -ltc` after each step.
 ```bash
 ls -s
 ```
-Shows allocated space (blocks) at the start of each line.
-
-```bash
-ls -ls
-```
-Long format + allocated space.
+Adds a column at the start of each line: the **disk space used, in blocks** (1K units). It does not sort.
+- A file with any content takes at least one 4K block, so small files show `4`
+- Empty files show `0`, directories show `4`
+- The `total` line at the top is the sum of this column
 
 ```bash
 ls -lS
 ```
-Sort by size, largest first.
+**Sorts** by size in bytes, largest first.
 
 ```bash
 ls -lh
 ```
-Human-readable sizes: `4.0K`, `1.2M`, `3.4G`. 1K = 1024 bytes.
+Human-readable sizes (`4.0K`, `145K`, `3.4G`), 1K = 1024 bytes. Only changes how sizes are shown, no sorting. Long form: `--human-readable`.
 
 ```bash
 ls -l --si
@@ -216,6 +209,135 @@ ls -lhS
 ```
 Everyday form: biggest first, readable sizes.
 
+```bash
+ls -lSr
+```
+Smallest first. If sizes are equal, entries are ordered by name, and `-r` reverses that too.
+
+---
+
+## Output formats
+
+```bash
+ls -1
+```
+One entry per line. ("Entries" = files, directories, links, everything `ls` lists.) Pointless with `-l`, which is already one per line.
+
+```bash
+ls -m
+ls --format=commas
+```
+Short list separated by commas.
+
+```bash
+ls --format=long
+```
+Same as `-l`. Other words: `across`/`horizontal` (`-x`), `vertical` (`-C`), `single-column` (`-1`).
+
+```bash
+ls -Q
+```
+Puts entry names in double quotes. Easy to see spaces in names.
+
+```bash
+ls -1Q
+```
+One per line, with quotes.
+
+Formats (`-l`, `-m`, `-1`, `-C`, `-x`) are alternatives: **the last one wins**. `ls -l --format=commas` loses the long details. Options like `-t`, `-s`, `-Q`, `-h` are not formats, so they combine with any format. Example: `ls -ltm` = commas, sorted by time.
+
+---
+
+## Time style
+
+```bash
+ls -l --time-style=iso
+ls -l --time-style=long-iso
+ls -l --time-style=full-iso
+```
+Only changes how the date column looks.
+
+| Style | Looks like |
+|-------|-----------|
+| locale (default) | `Oct 31 11:33` |
+| iso | `10-31 11:33` |
+| long-iso | `2026-10-31 11:33` |
+| full-iso | `2026-10-31 11:33:27.488202626 +0000` |
+
+Date codes (same as `date`): `%Y` year, `%m` month, `%d` day, `%H` hour, `%M` minute, `%S` second, `%N` nanoseconds, `%z` timezone offset.
+
+```bash
+ls -l --time-style="+%Y-%m-%d %H:%M"
+ls --full-time
+```
+Custom format / shortcut for `-l --time-style=full-iso`.
+
+---
+
+## ls --author
+
+```bash
+ls -la --author
+```
+Adds a column after the group. On Linux it just shows the **owner** again. Linux does not store who created a file.
+
+---
+
+## ls -d
+
+```bash
+ls -d
+```
+Lists the directory **itself**, not its contents. So it prints `.` (the current directory). New folders like `124` don't show because they are inside `.` and `-d` doesn't look inside.
+
+```bash
+ls -ld folder
+```
+Details of the folder itself (permissions, owner).
+
+```bash
+ls -d */
+```
+Lists only the subdirectories. The shell expands `*/` into the directory names before `ls` runs. Hidden directories need `.*/`.
+
+---
+
+## ls -i
+
+```bash
+ls -lai
+```
+Shows the **inode number** of each entry. An inode is the record in the filesystem that holds a file's details (permissions, owner, size, times, where the data is). The name in the directory points to the inode. Lesson 19.
+
+---
+
+## ls -R and ls -r
+
+```bash
+ls -R
+ls -laR
+```
+**Recursive**: list this directory, then repeat the same thing inside every subdirectory, and inside those. Long output, so use `ls -R | less`.
+
+```bash
+ls -r
+```
+**Reverse** the sort order. Lowercase `r` = reverse, uppercase `R` = recursive.
+
+---
+
+## ls --help
+
+```bash
+ls --help
+ls --help | grep "human"
+ls --version
+```
+
+---
+
+>``` -ltu``` really **access time**. Modification is already plain `-lt`.
+
 ---
 
 ## Other commands met
@@ -224,27 +346,28 @@ Everyday form: biggest first, readable sizes.
 clear                  # clear the screen
 touch file             # create an empty file
 echo "text" > file     # write text into a file (lesson 5 / 15)
-du -sh folder          # real size of a folder
+# my note               # a line starting with # is ignored by bash
 ```
 
 ---
 
 ## Notes and Gotchas
 
-**Most useful for revision**
-- Options are case-sensitive: `-a` vs `-A`, `-s` vs `-S`
-- `-s` shows allocated space, `-S` **sorts** by size
-- `-h` only changes how sizes look, it doesn't sort
-- `-u` and `-c` need `-t` (to sort) and `-l` (to see the time)
-- `ls -l` shows mtime by default
+**Revision**
+- Options are case-sensitive: `-a`/`-A`, `-s`/`-S`, `-r`/`-R`
+- `-s` shows blocks used, `-S` sorts by size, `-h` only changes how sizes look
+- `-d` lists the directory itself, not its contents, and not the parent
+- `-ltu` = access time, `-ltc` = metadata change time, `-lt` = modification time
 - Content change updates mtime and ctime; permission change updates only ctime
-- Directories always show size `4096`, not their contents. Use `du -sh`
+- Last format wins (`-l`, `-m`, `-1`, ...), other options combine with any of them
+- Equal sizes: sorted by name; `-r` reverses everything
+- Directories show size `4096`, not their contents. Use `du -sh`
+- Directory link count = 2 + number of subdirectories
+- `--author` = owner on Linux, not the creator
+- Same letter can mean different things in different commands (`ls -r` reverse, `cp -r` recursive). Check `command --help`
 - In number permissions "none" is `0`, never a dash (`700`, not `7--`)
 - `drwx` is only the first 4 of 10 characters
-- SSH refuses keys if `~/.ssh` or the private key is too open
+- No dash = not an option: `ls la -d` treats `la` as a file name
+- Option names need exact spelling: `--format=long`, `--human-readable`
 - Hidden does not mean secret
-
-**Terms**
-- "Arguments" in the course = **options** in standard naming. Argument = the file or folder.
-- Option with `-` = short, `--` = long
 
