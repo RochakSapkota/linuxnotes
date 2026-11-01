@@ -1,0 +1,48 @@
+
+
+## Open a manual
+```bash
+man ls          # open the manual (q to quit)
+man 5 passwd    # open a specific section
+ls --help       # quick built-in help
+```
+
+## Find the right command
+```bash
+man -f ls       # one-line description (same as: whatis ls)
+man -k copy     # search all manuals by keyword
+man -k '^ls'    # regex: names starting with "ls"
+man -k '^ls$'   # regex: exactly "ls"
+man -w ls       # where the manual file lives
+```
+
+## Search inside a manual
+| Key | Action |
+|-----|--------|
+| `/word` | search forward |
+| `n` / `N` | next / previous match |
+| `Space` / `b` | page down / up |
+| `q` | quit |
+
+## Sections
+| # | Contains |
+|---|----------|
+| 1 | Commands |
+| 5 | File formats and config files |
+| 7 | Overviews |
+| 8 | Admin commands |
+
+```bash
+man 1 intro     # section number goes BEFORE the name
+man 8 intro
+```
+
+## Gotchas
+- Options and section numbers always go **before** the command: `man -f ls`, not `man ls -f`.
+- `man -k` matches names and descriptions anywhere, so use `^` and `$` to cut the noise.
+- `man man description` does not search inside a page. It looks for a manual named `description`.
+
+## Quick tip
+```bash
+ls --help | grep "human"   # find one option fast
+```
